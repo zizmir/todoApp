@@ -1,5 +1,4 @@
 package com.example.todoapp
 
 
-data class Task(val content : String) {
-}
+data class Task(val id : String , val content : String)
