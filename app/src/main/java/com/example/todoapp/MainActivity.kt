@@ -1,18 +1,17 @@
 package com.example.todoapp
 
 import android.os.Bundle
-import android.util.Log
-import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity;
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.todoapp.network.TaskListAdapter
+import com.example.todoapp.network.TodoistApi
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import kotlinx.android.synthetic.main.tasklist_item.*
 import kotlinx.coroutines.*
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.cancelButton
@@ -45,8 +44,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        setSupportActionBar(toolbar) 
-        recyclerview.adapter = TaskListAdapter(mTaskList, this::onDeleteItem, this::onCloseItem)
+        setSupportActionBar(toolbar)
+        recyclerview.adapter = TaskListAdapter(
+            mTaskList,
+            this::onDeleteItem,
+            this::onCloseItem,
+            this::onReopenItem
+        )
         recyclerview.layoutManager = LinearLayoutManager(this)
 
         getTasksList()
@@ -68,15 +72,19 @@ class MainActivity : AppCompatActivity() {
 
         }
 
+    }
 
-
+    private fun onReopenItem(position: Int){
+        lifecycleScope.launch {
+            val task = mTaskList[position]
+            val res = TodoistApi.retrofitService.reopenTasks(task.id).await()
+        }
     }
 
     private fun onDeleteItem(position: Int) {
         lifecycleScope.launch {
             val task = mTaskList[position]
             val res = TodoistApi.retrofitService.deleteTasks(task.id).await()
-            Log.d("Main", res.toString())
             if (res.isSuccessful) {
                 mTaskList.remove(task)
                 recyclerview.adapter?.notifyItemRemoved(position)
@@ -84,15 +92,13 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
+
     private fun onCloseItem(position: Int) {
         lifecycleScope.launch {
             val task = mTaskList[position]
 
-            val res = TodoistApi.retrofitService.closeTasks(task.id).await()
-            Log.d("Main", res.toString())
-
+            TodoistApi.retrofitService.closeTasks(task.id).await()
         }
-
 
     }
 
@@ -108,6 +114,10 @@ class MainActivity : AppCompatActivity() {
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
             R.id.action_settings -> true
+            R.id.action_refresh -> {
+                getTasksList()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }

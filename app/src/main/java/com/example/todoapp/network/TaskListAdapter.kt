@@ -1,4 +1,4 @@
-package com.example.todoapp
+package com.example.todoapp.network
 
 import android.graphics.Paint
 import android.view.LayoutInflater
@@ -8,9 +8,11 @@ import android.widget.CheckBox
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.todoapp.R
+import com.example.todoapp.Task
 import java.util.*
 
-class TaskListAdapter(private val mTaskList:LinkedList<Task>, val onClickDelete: (Int)-> Unit, val onClickClose:(Int) -> Unit): RecyclerView.Adapter<TaskListAdapter.TaskViewHolder>() {
+class TaskListAdapter(private val mTaskList:LinkedList<Task>, val onClickDelete: (Int)-> Unit, val onClickClose:(Int) -> Unit, val onClickReopen:(Int) -> Unit): RecyclerView.Adapter<TaskListAdapter.TaskViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
         val mInflater = LayoutInflater.from(parent.context);
@@ -34,9 +36,13 @@ class TaskListAdapter(private val mTaskList:LinkedList<Task>, val onClickDelete:
                  onClickDelete(adapterPosition)
              }
              itemView.findViewById<CheckBox>(R.id.close).setOnCheckedChangeListener { buttonView, isChecked ->
-                 onClickClose(adapterPosition)
-                    mTaskView?.strikeThrough = isChecked
+                 if(isChecked){
+                     onClickClose(adapterPosition)
 
+                 }else{
+                     onClickReopen(adapterPosition)
+                 }
+                    mTaskView?.strikeThrough = isChecked
              }
 
          }
