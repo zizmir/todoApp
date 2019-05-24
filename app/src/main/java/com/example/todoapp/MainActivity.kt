@@ -8,6 +8,7 @@ import android.widget.EditText
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.todoapp.network.TaskListAdapter
+import com.example.todoapp.network.TodoListService
 import com.example.todoapp.network.TodoistApi
 
 import kotlinx.android.synthetic.main.activity_main.*
@@ -21,7 +22,7 @@ import java.util.*
 class MainActivity : AppCompatActivity() {
 
     private val mTaskList = LinkedList<Task>()
-
+    private var reverse = false
     fun getTasksList() {
         lifecycleScope.launch {
             val newTasks = TodoistApi.retrofitService.getTasks().await()
@@ -118,7 +119,34 @@ class MainActivity : AppCompatActivity() {
                 getTasksList()
                 true
             }
+            R.id.action_delete_all -> {
+                lifecycleScope.launch {
+                    mTaskList.forEach {
+                        TodoistApi.retrofitService.deleteTasks(it.id).await()
+                    }
+                    mTaskList.clear()
+                    recyclerview.adapter?.notifyDataSetChanged()
+
+                }
+
+                true
+            }
+
+            R.id.action_sort ->{
+                reverse = !reverse
+                if(reverse){
+
+                    mTaskList.sortByDescending { it.id }
+                }else
+                {
+                    mTaskList.sortBy{it.id}
+                }
+                recyclerview.adapter?.notifyDataSetChanged()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
+
+
 }

@@ -30,6 +30,7 @@ class TaskListAdapter(private val mTaskList:LinkedList<Task>, val onClickDelete:
 
     inner class TaskViewHolder(itemView : View) : RecyclerView.ViewHolder(itemView){
          private var mTaskView: TextView? = null
+
          init {
              mTaskView = itemView.findViewById(R.id.task)
              itemView.findViewById<ImageButton>(R.id.trash).setOnClickListener {
